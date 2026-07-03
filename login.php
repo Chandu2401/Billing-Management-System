@@ -32,7 +32,7 @@ if (isset($_POST['login'])) {
                 // Update last login
                 $conn->query("UPDATE admin SET last_login = NOW() WHERE id = " . $admin['id']);
                 
-                header("Location: admin/dashboard.php");
+                header("Location: dashboard.php");
                 exit();
             } else {
                 $error = "Invalid password";
@@ -54,62 +54,74 @@ if (isset($_POST['login'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
+    <!-- Custom CSS (Google Font + tokens + login styles) -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <i class="fas fa-receipt"></i>
-                <h3 class="mb-0"><?php echo APP_NAME; ?></h3>
-                <p class="mb-0">Admin Login</p>
-            </div>
-            <div class="login-body">
-                <?php if ($error): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-circle me-2"></i><?php echo $error; ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php endif; ?>
-                
-                <form method="POST" action="">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">
-                            <i class="fas fa-user me-2"></i>Username or Email
-                        </label>
-                        <input type="text" class="form-control" id="username" name="username" required autofocus>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock me-2"></i>Password
-                        </label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="remember">
-                        <label class="form-check-label" for="remember">Remember me</label>
-                    </div>
-                    
-                    <button type="submit" name="login" class="btn btn-gradient-primary btn-custom w-100">
-                        <i class="fas fa-sign-in-alt me-2"></i>Login
-                    </button>
-                </form>
-                
-                <div class="mt-4 text-center">
-                    <small class="text-muted">
-                        Default credentials: <br>
-                        <strong>Username:</strong> admin <br>
-                        <strong>Password:</strong> admin123
-                    </small>
+<body class="login-page">
+    <div class="login-blob teal"></div>
+    <div class="login-blob amber"></div>
+
+    <div class="login-card">
+        <div class="login-header">
+            <div class="brand-icon"><i class="fas fa-receipt"></i></div>
+            <h3><?php echo APP_NAME; ?></h3>
+            <span class="login-eyebrow">Secure Admin Access</span>
+        </div>
+
+        <div class="receipt-tear"></div>
+
+        <div class="login-body">
+            <?php if ($error): ?>
+                <div class="login-alert" role="alert">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span><?php echo $error; ?></span>
                 </div>
+            <?php endif; ?>
+
+            <form method="POST" action="">
+                <div class="field-group">
+                    <i class="fas fa-user field-icon"></i>
+                    <input type="text" id="username" name="username" placeholder=" " required autofocus>
+                    <label for="username">Username or Email</label>
+                </div>
+
+                <div class="field-group">
+                    <i class="fas fa-lock field-icon"></i>
+                    <input type="password" id="password" name="password" placeholder=" " required>
+                    <label for="password">Password</label>
+                    <button type="button" class="field-toggle" onclick="toggleLoginPassword()" aria-label="Show password">
+                        <i class="fas fa-eye" id="loginPwToggleIcon"></i>
+                    </button>
+                </div>
+
+                <div class="login-remember">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+
+                <button type="submit" name="login" class="btn-login">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </button>
+            </form>
+
+            <div class="login-hint">
+                <strong>Default credentials</strong><br>
+                Username: admin &nbsp;·&nbsp; Password: admin123
             </div>
         </div>
     </div>
-    
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleLoginPassword() {
+            const pw = document.getElementById('password');
+            const icon = document.getElementById('loginPwToggleIcon');
+            const isHidden = pw.type === 'password';
+            pw.type = isHidden ? 'text' : 'password';
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        }
+    </script>
 </body>
 </html>
