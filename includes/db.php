@@ -50,7 +50,7 @@ function clean_input($data) {
  */
 function check_login() {
     if (!isset($_SESSION['admin_id']) || empty($_SESSION['admin_id'])) {
-        header("Location: ../login.php");
+        header("Location: login.php");
         exit();
     }
 }

@@ -9,10 +9,12 @@ $stats = $conn->query($stats_query)->fetch_assoc();
 // Get low stock products
 $low_stock_query = "SELECT * FROM low_stock_view LIMIT 5";
 $low_stock_products = $conn->query($low_stock_query);
+$has_low_stock = $low_stock_products->num_rows > 0;
 
 // Get recent bills
 $recent_bills_query = "SELECT * FROM bills ORDER BY id DESC LIMIT 5";
 $recent_bills = $conn->query($recent_bills_query);
+$has_recent_bills = $recent_bills->num_rows > 0;
 
 // Get monthly sales data for chart
 $monthly_sales_query = "SELECT DATE_FORMAT(bill_date, '%M') as month, SUM(final_amount) as sales 
@@ -21,6 +23,7 @@ $monthly_sales_query = "SELECT DATE_FORMAT(bill_date, '%M') as month, SUM(final_
                         GROUP BY MONTH(bill_date)
                         ORDER BY MONTH(bill_date)";
 $monthly_sales = $conn->query($monthly_sales_query);
+$has_sales_data = $monthly_sales->num_rows > 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -45,61 +48,49 @@ $monthly_sales = $conn->query($monthly_sales_query);
         
         <div class="main-content">
             <div class="container-fluid">
-                <!-- Page Header -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h2 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
-                        <p class="text-muted">Welcome back, <?php echo get_admin_name(); ?>!</p>
+                <!-- Welcome Section -->
+                <div class="dash-welcome mb-4">
+                    <div>
+                        <span class="dash-eyebrow">Dashboard · <?php echo date('l, d M Y'); ?></span>
+                        <h2 class="dash-title"><i class="fas fa-tachometer-alt me-2"></i>Welcome back, <?php echo get_admin_name(); ?></h2>
+                        <p class="dash-subtitle">Here's how the store is doing today.</p>
                     </div>
+                    <a href="index.php" class="btn-dash-cta">
+                        <i class="fas fa-plus me-2"></i>Create New Bill
+                    </a>
                 </div>
-                
+
                 <!-- Statistics Cards -->
                 <div class="row mb-4">
                     <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card">
-                            <div class="card-body">
-                                <div class="stats-icon primary">
-                                    <i class="fas fa-dollar-sign"></i>
-                                </div>
-                                <div class="stats-number"><?php echo format_currency($stats['total_sales']); ?></div>
-                                <div class="stats-label">Total Sales</div>
-                            </div>
+                        <div class="stat-card stat-teal">
+                            <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                            <div class="stat-number"><?php echo format_currency($stats['total_sales']); ?></div>
+                            <div class="stat-label">Total Sales</div>
                         </div>
                     </div>
-                    
+
                     <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card">
-                            <div class="card-body">
-                                <div class="stats-icon success">
-                                    <i class="fas fa-calendar-day"></i>
-                                </div>
-                                <div class="stats-number"><?php echo format_currency($stats['today_sales']); ?></div>
-                                <div class="stats-label">Today's Sales</div>
-                            </div>
+                        <div class="stat-card stat-amber">
+                            <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+                            <div class="stat-number"><?php echo format_currency($stats['today_sales']); ?></div>
+                            <div class="stat-label">Today's Sales</div>
                         </div>
                     </div>
-                    
+
                     <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card">
-                            <div class="card-body">
-                                <div class="stats-icon warning">
-                                    <i class="fas fa-box"></i>
-                                </div>
-                                <div class="stats-number"><?php echo $stats['total_products']; ?></div>
-                                <div class="stats-label">Total Products</div>
-                            </div>
+                        <div class="stat-card stat-ink">
+                            <div class="stat-icon"><i class="fas fa-box"></i></div>
+                            <div class="stat-number"><?php echo $stats['total_products']; ?></div>
+                            <div class="stat-label">Total Products</div>
                         </div>
                     </div>
-                    
+
                     <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card stats-card">
-                            <div class="card-body">
-                                <div class="stats-icon info">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                <div class="stats-number"><?php echo $stats['total_customers']; ?></div>
-                                <div class="stats-label">Total Customers</div>
-                            </div>
+                        <div class="stat-card stat-glass">
+                            <div class="stat-icon"><i class="fas fa-users"></i></div>
+                            <div class="stat-number"><?php echo $stats['total_customers']; ?></div>
+                            <div class="stat-label">Total Customers</div>
                         </div>
                     </div>
                 </div>
@@ -107,21 +98,40 @@ $monthly_sales = $conn->query($monthly_sales_query);
                 <!-- Charts Row -->
                 <div class="row mb-4">
                     <div class="col-lg-8 mb-4">
-                        <div class="chart-container">
-                            <h5 class="mb-3"><i class="fas fa-chart-line me-2"></i>Monthly Sales</h5>
-                            <canvas id="salesChart"></canvas>
+                        <div class="dash-card chart-card">
+                            <div class="dash-card-head">
+                                <h5><i class="fas fa-chart-line me-2"></i>Monthly Sales</h5>
+                            </div>
+                            <div class="dash-card-body">
+                                <?php if ($has_sales_data): ?>
+                                    <!-- Chart.js renders here from $monthly_sales (query unchanged) -->
+                                    <canvas id="salesChart"></canvas>
+                                <?php else: ?>
+                                    <!--
+                                        Chart.js placeholder — $monthly_sales returned 0 rows for the
+                                        current year. Once bills exist, this block is skipped and the
+                                        <canvas> above renders automatically; no code change needed.
+                                    -->
+                                    <div class="chart-empty">
+                                        <i class="fas fa-chart-line"></i>
+                                        <p>No sales recorded yet this year</p>
+                                        <span>The chart will appear automatically once bills come in</span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="col-lg-4 mb-4">
-                        <div class="card">
-                            <div class="card-header bg-gradient-primary text-white">
-                                <i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alert
+                        <div class="dash-card">
+                            <div class="dash-card-head dash-card-head-alert">
+                                <h5><i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alert</h5>
                             </div>
-                            <div class="card-body p-0">
+                            <div class="dash-card-body p-0">
+                                <?php if ($has_low_stock): ?>
                                 <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="table-light">
+                                    <table class="table table-hover dash-table mb-0">
+                                        <thead>
                                             <tr>
                                                 <th>Product</th>
                                                 <th>Stock</th>
@@ -143,6 +153,12 @@ $monthly_sales = $conn->query($monthly_sales_query);
                                         </tbody>
                                     </table>
                                 </div>
+                                <?php else: ?>
+                                    <div class="dash-empty">
+                                        <i class="fas fa-check-circle"></i>
+                                        <p>All products are well stocked</p>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -151,13 +167,15 @@ $monthly_sales = $conn->query($monthly_sales_query);
                 <!-- Recent Bills -->
                 <div class="row">
                     <div class="col-12">
-                        <div class="card table-custom">
-                            <div class="card-header bg-gradient-primary text-white">
-                                <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Recent Bills</h5>
+                        <div class="dash-card">
+                            <div class="dash-card-head">
+                                <h5><i class="fas fa-receipt me-2"></i>Recent Bills</h5>
+                                <a href="bill_history.php" class="dash-card-link">View all <i class="fas fa-arrow-right ms-1"></i></a>
                             </div>
-                            <div class="card-body p-0">
+                            <div class="dash-card-body p-0">
+                                <?php if ($has_recent_bills): ?>
                                 <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
+                                    <table class="table table-hover dash-table mb-0">
                                         <thead>
                                             <tr>
                                                 <th>Bill No</th>
@@ -184,7 +202,7 @@ $monthly_sales = $conn->query($monthly_sales_query);
                                                 </td>
                                                 <td>
                                                     <a href="print_bill.php?bill_id=<?php echo $bill['id']; ?>" 
-                                                       class="btn btn-sm btn-primary" target="_blank">
+                                                       class="btn-table-action" target="_blank" title="Print bill">
                                                         <i class="fas fa-print"></i>
                                                     </a>
                                                 </td>
@@ -193,6 +211,13 @@ $monthly_sales = $conn->query($monthly_sales_query);
                                         </tbody>
                                     </table>
                                 </div>
+                                <?php else: ?>
+                                    <div class="dash-empty">
+                                        <i class="fas fa-receipt"></i>
+                                        <p>No bills yet</p>
+                                        <span>Create your first bill to see it show up here</span>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -204,7 +229,8 @@ $monthly_sales = $conn->query($monthly_sales_query);
    <?php include 'includes/footer.php'; ?>
     
     <script>
-    // Sales Chart
+    <?php if ($has_sales_data): ?>
+    // Sales Chart — data straight from $monthly_sales (query unchanged)
     const ctx = document.getElementById('salesChart').getContext('2d');
     const salesChart = new Chart(ctx, {
         type: 'line',
@@ -227,8 +253,11 @@ $monthly_sales = $conn->query($monthly_sales_query);
                     }
                     ?>
                 ],
-                borderColor: 'rgb(102, 126, 234)',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderColor: '#178C79',
+                backgroundColor: 'rgba(23, 140, 121, 0.12)',
+                pointBackgroundColor: '#E8A33D',
+                pointBorderColor: '#fff',
+                pointRadius: 4,
                 tension: 0.4,
                 fill: true
             }]
@@ -248,6 +277,7 @@ $monthly_sales = $conn->query($monthly_sales_query);
             }
         }
     });
+    <?php endif; ?>
     </script>
 </body>
 </html>
