@@ -35,12 +35,13 @@ $monthly_sales = $conn->query($monthly_sales_query);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-    <?php include 'includes/header.php'; ?>
+    <?php include 'includes/navbar.php'; ?>
     
     <div class="d-flex">
-        <?php include '../includes/sidebar.php'; ?>
+        <?php include 'includes/sidebar.php'; ?>
         
         <div class="main-content">
             <div class="container-fluid">
